@@ -1,0 +1,30 @@
+x-shared_environment: &shared_environment
+    LOG_LEVEL: ${LOG_LEVEL:-info}
+
+services:
+    swiftjobs:
+        container_name: swiftjobs
+        build:
+            context: .
+        environment:
+            <<: *shared_environment
+        env_file: .env.local
+        depends_on:
+            redis:
+                condition: service_started
+        ports:
+            - "8080:8080"
+        command: ["--hostname", "0.0.0.0", "--port", "8080"]
+    redis:
+        container_name: redis
+        image: redis:alpine
+        ports:
+            - 6379:6379
+        healthcheck:
+            test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+        volumes:
+            - ./database/redis:/data
+
+volumes:
+    db_data:
+    redis_data:
